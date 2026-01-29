@@ -12,7 +12,9 @@ env/
 
 # Data and model files
 news_data.csv
-*.pkl
+# allow committing model.pkl and vectorizer.pkl required by the app
+!model.pkl
+!vectorizer.pkl
 *.model
 models/
 *.h5
