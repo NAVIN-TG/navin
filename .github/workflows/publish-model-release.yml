@@ -1,0 +1,53 @@
+name: Publish Model Release
+
+on:
+  push:
+    paths:
+      - 'model.pkl'
+      - 'vectorizer.pkl'
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check model files
+        id: check
+        run: |
+          if [ -f model.pkl ]; then echo "MODEL_EXISTS=true" >> $GITHUB_ENV; else echo "MODEL_EXISTS=false" >> $GITHUB_ENV; fi
+          if [ -f vectorizer.pkl ]; then echo "VECT_EXISTS=true" >> $GITHUB_ENV; else echo "VECT_EXISTS=false" >> $GITHUB_ENV; fi
+
+      - name: Get short SHA
+        id: vars
+        run: echo "SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@v1
+        with:
+          tag_name: model-${{ env.SHA }}
+          release_name: model-${{ env.SHA }}
+          body: "Automated model release for commit ${{ env.SHA }}"
+          draft: false
+          prerelease: false
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload model.pkl
+        if: env.MODEL_EXISTS == 'true'
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: model.pkl
+          asset_name: model.pkl
+          asset_content_type: application/octet-stream
+
+      - name: Upload vectorizer.pkl
+        if: env.VECT_EXISTS == 'true'
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: vectorizer.pkl
+          asset_name: vectorizer.pkl
+          asset_content_type: application/octet-stream

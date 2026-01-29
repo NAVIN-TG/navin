@@ -26,3 +26,18 @@ The app will attempt to download these files at startup if they are missing loca
 
 Alternative: use Git LFS for large model files and configure your deployment to fetch LFS objects.
 
+Automated Releases (recommended)
+-------------------------------
+
+This repository includes a GitHub Actions workflow that, when `model.pkl` and/or `vectorizer.pkl` are present in a commit, will create a GitHub Release and upload the model files as release assets. The release will be tagged `model-<short-sha>`.
+
+To use a release asset as your `MODEL_URL`/`VECT_URL`, the public download URL pattern is:
+
+`https://github.com/<owner>/<repo>/releases/download/<tag>/model.pkl`
+
+Example:
+
+`MODEL_URL=https://github.com/NAVIN-TG/navin/releases/download/model-abc123/model.pkl`
+
+This approach keeps the large binaries out of the repository history while making them easily downloadable by the app.
+
