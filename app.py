@@ -5,14 +5,47 @@ import pickle
 MODEL_PATH = "model.pkl"
 VECT_PATH = "vectorizer.pkl"
 
+MODEL_URL = os.environ.get("MODEL_URL")
+VECT_URL = os.environ.get("VECT_URL")
+
+def _download_file(url, dest_path):
+    """Download a file from a public URL to dest_path. Returns True on success."""
+    try:
+        import requests
+    except Exception:
+        st.warning("`requests` not installed; cannot download model files automatically.")
+        return False
+
+    try:
+        resp = requests.get(url, stream=True, timeout=30)
+        resp.raise_for_status()
+        with open(dest_path, "wb") as f:
+            for chunk in resp.iter_content(chunk_size=8192):
+                if chunk:
+                    f.write(chunk)
+        return True
+    except Exception as e:
+        st.warning(f"Download failed for {url}: {e}")
+        return False
+
+
 def load_artifacts():
-    """Attempt to load model and vectorizer; show friendly Streamlit errors on failure."""
+    """Attempt to load or download model and vectorizer; show friendly Streamlit messages on failure."""
+    # If files missing, try downloading from configured URLs
+    if not os.path.exists(MODEL_PATH) and MODEL_URL:
+        st.info(f"Downloading model from configured URL...")
+        _download_file(MODEL_URL, MODEL_PATH)
+
+    if not os.path.exists(VECT_PATH) and VECT_URL:
+        st.info(f"Downloading vectorizer from configured URL...")
+        _download_file(VECT_URL, VECT_PATH)
+
     if not os.path.exists(MODEL_PATH) or not os.path.exists(VECT_PATH):
         st.error(
-            f"Model files not found. Expected '{MODEL_PATH}' and '{VECT_PATH}' in the app root."
+            f"Model files not found. Expected '{MODEL_PATH}' and '{VECT_PATH}' in the app root, or set `MODEL_URL` and `VECT_URL` environment variables."
         )
         st.info(
-            "Push the model files to your repo or use external storage and download at startup."
+            "You can upload model files to your repository, use Git LFS, or host them at a public URL and set the environment variables."
         )
         return None, None
 
