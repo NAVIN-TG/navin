@@ -11,26 +11,23 @@ from sklearn.metrics import accuracy_score, confusion_matrix, classification_rep
 
 # --- STEP 1: LOAD DATASET ---
 # For demonstration, we create a small CSV. In a real scenario, use pd.read_csv('news.csv')
-data = {
-    'text': [
-        "The president signed a new law today regarding education reform.",
-        "Aliens have landed in Central Park and are eating hot dogs.",
-        "Scientists discover a new species of frog in the Amazon rainforest.",
-        "Drinking bleach cures all diseases according to a secret report.",
-        "The stock market saw a significant rise following the quarterly earnings report.",
-        "Breaking: The moon is actually made of green cheese, NASA confirms.",
-        "Local man wins the lottery for the third time this year.",
-        "Government to ban all forms of internet starting next month.",
-        "New study shows that coffee might improve heart health.",
-        "Magic spell allows you to fly if you jump off a building."
-    ],
-    'label': [1, 0, 1, 0, 1, 0, 1, 0, 1, 0]  # 1: Real, 0: Fake
-}
-df = pd.DataFrame(data)
-df.to_csv('news_data.csv', index=False)
 
-# Load the CSV
-df = pd.read_csv('news_data.csv')
+# --- STEP 1: LOAD DATASET (KAGGLE DATASET) ---
+
+fake = pd.read_csv("Fake.csv")
+real = pd.read_csv("True.csv")
+
+fake["label"] = 0
+real["label"] = 1
+
+df = pd.concat([fake, real], axis=0)
+
+df = df.sample(frac=1).reset_index(drop=True)
+
+print("Dataset Shape:", df.shape)
+
+
+
 
 # --- STEP 2: PREPROCESSING ---
 def clean_text(text):
